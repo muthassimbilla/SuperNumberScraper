@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Minimal Phone Scraper Extension",
-  "version": "2.0.0",
-  "description": "Lightweight extension that connects to your server for phone number management",
+  "name": "Phone Scraper Extension",
+  "version": "2.1.0",
+  "description": "Server-driven extension for phone number scraping and management",
   "permissions": ["activeTab", "scripting", "storage"],
-  "host_permissions": ["https://your-domain.com/*"],
+  "host_permissions": ["http://localhost:3000/*", "https://*.vercel.app/*", "https://*.supabase.co/*"],
   "background": {
     "service_worker": "background.js"
   },
@@ -18,5 +18,11 @@
   "action": {
     "default_popup": "popup.html",
     "default_title": "Phone Scraper"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["config.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

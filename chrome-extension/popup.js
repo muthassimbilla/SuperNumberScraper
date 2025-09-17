@@ -1,10 +1,27 @@
 // Minimal popup script that connects to your server
 class MinimalExtension {
   constructor() {
-    this.serverUrl = "http://localhost:3000/api/extension" // For development
-    this.dashboardUrl = "http://localhost:3000" // Dashboard URL
+    this.serverUrl = this.getServerUrl() + "/api/extension" // Dynamic server URL
+    this.dashboardUrl = this.getServerUrl() // Dashboard URL
     this.container = document.getElementById("app-container")
     this.init()
+  }
+
+  getServerUrl() {
+    // Check if we're in development (localhost) or production
+    const isDevelopment =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname.includes("localhost")
+
+    // For extension, we need to detect environment differently
+    // You can set this manually or use chrome.runtime.getManifest()
+    const PRODUCTION_URL = "https://your-project-name.vercel.app" // Replace with your actual Vercel URL
+    const DEVELOPMENT_URL = "http://localhost:3000"
+
+    // For now, we'll use production URL by default
+    // You can change this logic based on your needs
+    return isDevelopment ? DEVELOPMENT_URL : PRODUCTION_URL
   }
 
   async init() {
@@ -187,23 +204,40 @@ class MinimalExtension {
   async testConnection() {
     try {
       console.log("[v0] Testing connection to:", this.serverUrl)
-      const response = await fetch(`${this.serverUrl}/config`, {
+      const healthResponse = await fetch(`${this.getServerUrl()}/api/health`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
       })
 
-      console.log("[v0] Connection test response:", response.status)
+      console.log("[v0] Health check response:", healthResponse.status)
 
-      if (response.ok) {
-        this.showError("✅ Connection successful! Please sign in through the dashboard.")
+      if (healthResponse.ok) {
+        const healthData = await healthResponse.json()
+        console.log("[v0] Health data:", healthData)
+
+        // Test extension config endpoint
+        const response = await fetch(`${this.serverUrl}/config`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+
+        console.log("[v0] Config test response:", response.status)
+
+        if (response.ok) {
+          this.showError("✅ Connection successful! Server is running. Please sign in through the dashboard.")
+        } else {
+          this.showError(`❌ Config endpoint failed: ${response.status} ${response.statusText}`)
+        }
       } else {
-        this.showError(`❌ Connection failed: ${response.status} ${response.statusText}`)
+        this.showError(`❌ Health check failed: ${healthResponse.status} ${healthResponse.statusText}`)
       }
     } catch (error) {
       console.log("[v0] Connection test error:", error)
-      this.showError(`❌ Connection error: ${error.message}`)
+      this.showError(`❌ Connection error: ${error.message}. Make sure your server is deployed and running.`)
     }
   }
 

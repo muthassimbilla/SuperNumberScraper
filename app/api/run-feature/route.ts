@@ -306,7 +306,7 @@ async function executeAnalytics(action: string, input: any, user: any): Promise<
     
     // Calculate some basic analytics
     const totalActions = userData?.length || 0
-    const features = [...new Set(userData?.map(d => d.feature) || [])]
+    const features = Array.from(new Set(userData?.map(d => d.feature) || []))
     const lastActivity = userData?.[0]?.created_at || 'Never'
 
     const analyticsHTML = `

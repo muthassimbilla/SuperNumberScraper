@@ -30,6 +30,91 @@ export const TABLES = {
   LAYOUTS: 'layouts'
 } as const
 
+// Auth helper for Supabase authentication
+export class SupabaseAuth {
+  static async signIn(email: string, password: string) {
+    try {
+      const { data, error } = await supabaseAdmin.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        }
+      }
+
+      return {
+        success: true,
+        user: data.user,
+        session: data.session
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Authentication failed'
+      }
+    }
+  }
+
+  static async signUp(email: string, password: string, metadata?: Record<string, any>) {
+    try {
+      const { data, error } = await supabaseAdmin.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata
+        }
+      })
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        }
+      }
+
+      return {
+        success: true,
+        user: data.user,
+        session: data.session
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Registration failed'
+      }
+    }
+  }
+
+  static async signOut() {
+    try {
+      const { error } = await supabaseAdmin.auth.signOut()
+      
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        }
+      }
+
+      return {
+        success: true
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Sign out failed'
+      }
+    }
+  }
+}
+
+// Export supabaseAuth for backward compatibility
+export const supabaseAuth = SupabaseAuth;
+
 // Helper functions for common database operations
 export class SupabaseHelper {
   // User operations

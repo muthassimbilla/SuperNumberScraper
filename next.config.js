@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
   env: {
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,

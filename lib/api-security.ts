@@ -52,7 +52,7 @@ export function generateGenericId() {
   return 'item_' + Math.random().toString(36).substr(2, 9)
 }
 
-export function obfuscateDatabaseFields(data: any) {
+export function obfuscateDatabaseFields(data: any): any {
   // Remove or rename database-specific fields
   if (Array.isArray(data)) {
     return data.map(item => obfuscateDatabaseFields(item))
@@ -94,7 +94,7 @@ export function createGenericAPIResponse(data: any, options: {
     responseData = obfuscateDatabaseFields(data)
   }
 
-  const response = {
+  const response: any = {
     success: true,
     data: responseData
   }

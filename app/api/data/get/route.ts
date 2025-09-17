@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     // Verify authentication
     const authResult = await verifyAuth(request)
-    if (!authResult.success) {
+    if (!authResult.isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

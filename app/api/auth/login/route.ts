@@ -50,6 +50,13 @@ export async function POST(request: NextRequest) {
       }
 
       // Get user profile from our users table
+      if (!authResult.user) {
+        return NextResponse.json({
+          success: false,
+          error: 'User not found'
+        }, { status: 404 })
+      }
+
       const user = await SupabaseHelper.getUserById(authResult.user.id)
       
       if (!user) {

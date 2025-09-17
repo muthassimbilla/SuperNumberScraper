@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Filter features based on user subscription if authenticated
-      if (authenticatedUser && config.features) {
+      if (authenticatedUser && config && config.features) {
         const userHasPremium = AuthManager.hasPremiumAccess(authenticatedUser)
         
         // Disable premium features for non-premium users
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Log config request
-      if (userId) {
+      if (userId && config) {
         await SupabaseHelper.log({
           level: 'info',
           message: 'Extension config requested',
@@ -115,6 +115,13 @@ export async function GET(request: NextRequest) {
       }
 
       // Return config without sensitive information
+      if (!config) {
+        return NextResponse.json({
+          success: false,
+          error: 'No configuration found'
+        }, { status: 404 })
+      }
+
       const responseConfig = {
         ...config,
         supabase_config: config.supabase || {

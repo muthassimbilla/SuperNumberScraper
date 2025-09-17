@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     // Verify authentication
     const authResult = await verifyAuth(request)
-    if (!authResult.success) {
+    if (!authResult.isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -95,7 +95,7 @@ async function handleNoteTaking(action: string, input: string, userId: string) {
       const { data, error } = await supabase
         .from('user_data')
         .insert({
-          user_id,
+          user_id: userId,
           feature: 'notes',
           data: {
             content: input,
@@ -169,7 +169,7 @@ async function handlePhoneScraper(action: string, input: string, userId: string)
     await supabase
       .from('user_data')
       .insert({
-        user_id,
+        user_id: userId,
         feature: 'phone_numbers',
         data: {
           numbers: processedNumbers,

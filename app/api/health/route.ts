@@ -1,10 +1,23 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-
 export async function GET() {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({
+        status: "warning",
+        message: "Environment variables not configured",
+        timestamp: new Date().toISOString(),
+        database: "not_configured",
+        environment: process.env.NODE_ENV || "development",
+      })
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
     // Test database connection
     const { data, error } = await supabase.from("users").select("count").limit(1)
 

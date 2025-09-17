@@ -19,20 +19,50 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = createServerSupabaseClient()
+
+    console.log("[v0] Attempting to fetch users from Supabase...")
     const { data: users, error } = await supabase.from("users").select("*").order("created_at", { ascending: false })
 
     if (error) {
-      console.error("[v0] Error fetching users:", error)
+      console.error("[v0] Error fetching users:", error.message)
 
-      if (error.message.includes("Invalid API key") || error.message.includes("unauthorized")) {
-        return NextResponse.json({
-          users: [],
-          error: "Invalid Supabase credentials. Please check your environment variables in Vercel Project Settings.",
-          environmentStatus: "invalid_credentials",
-        })
+      if (
+        error.message.includes("Invalid API key") ||
+        error.message.includes("unauthorized") ||
+        error.message.includes("JWT") ||
+        error.message.includes("authentication")
+      ) {
+        return NextResponse.json(
+          {
+            users: [],
+            error: "Invalid Supabase credentials detected. Please verify your environment variables are correct.",
+            environmentStatus: "invalid_credentials",
+            suggestion:
+              "Check that NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are properly set in Vercel Project Settings.",
+          },
+          { status: 401 },
+        )
       }
 
-      return NextResponse.json({ users: [], error: error.message })
+      if (error.message.includes("relation") || error.message.includes("does not exist")) {
+        return NextResponse.json(
+          {
+            users: [],
+            error: "Database table 'users' not found. Please run the database setup script first.",
+            environmentStatus: "missing_table",
+          },
+          { status: 404 },
+        )
+      }
+
+      return NextResponse.json(
+        {
+          users: [],
+          error: error.message,
+          environmentStatus: "database_error",
+        },
+        { status: 500 },
+      )
     }
 
     // Format users data for frontend
@@ -50,11 +80,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ users: formattedUsers })
   } catch (error) {
     console.error("[v0] Error in users API:", error)
-    return NextResponse.json({
-      users: [],
-      error: "API error occurred",
-      details: error instanceof Error ? error.message : "Unknown error",
-    })
+    return NextResponse.json(
+      {
+        users: [],
+        error: "API error occurred",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
+    )
   }
 }
 

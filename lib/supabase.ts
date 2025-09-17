@@ -50,6 +50,38 @@ const createMockSupabaseClient = () => {
   }
 }
 
+export const testSupabaseConnection = async (url: string, key: string) => {
+  try {
+    console.log("[v0] Testing connection with URL:", url.substring(0, 30) + "...")
+    console.log("[v0] Testing connection with key length:", key.length)
+
+    // Check for placeholder values
+    if (url.includes("placeholder") || key.includes("placeholder")) {
+      const error = "Environment variables contain placeholder values"
+      console.log("[v0] Connection test failed:", error)
+      return { success: false, error }
+    }
+
+    const testClient = createClient(url, key)
+
+    // Try a simple query to test the connection - use a more basic approach
+    console.log("[v0] Attempting test query...")
+    const { data, error } = await testClient.from("users").select("id").limit(1)
+
+    if (error) {
+      console.log("[v0] Connection test failed:", error.message)
+      return { success: false, error: error.message }
+    }
+
+    console.log("[v0] Connection test successful")
+    return { success: true, error: null }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown connection error"
+    console.log("[v0] Connection test exception:", errorMessage)
+    return { success: false, error: errorMessage }
+  }
+}
+
 export const createServerSupabaseClient = () => {
   // Check multiple environment variable patterns for Vercel deployment
   const supabaseUrl =
@@ -61,16 +93,31 @@ export const createServerSupabaseClient = () => {
     process.env.SUPABASE_ANON_KEY ||
     process.env.VERCEL_SUPABASE_ANON_KEY
 
-  // Log environment status for debugging
+  const isValidUrl =
+    supabaseUrl &&
+    !supabaseUrl.includes("placeholder") &&
+    supabaseUrl.includes("supabase.co") &&
+    supabaseUrl.startsWith("https://")
+
+  const isValidKey =
+    supabaseKey &&
+    !supabaseKey.includes("placeholder") &&
+    supabaseKey.length > 50 && // Supabase keys are much longer than 21 chars
+    (supabaseKey.startsWith("eyJ") || supabaseKey.startsWith("sbp_")) // JWT or service role key format
+
   console.log("[v0] Environment check:", {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseKey,
+    urlValid: isValidUrl,
+    keyValid: isValidKey,
+    keyLength: supabaseKey?.length || 0,
     nodeEnv: process.env.NODE_ENV,
     isVercel: !!process.env.VERCEL,
   })
 
-  if (!supabaseUrl || !supabaseKey || supabaseUrl.includes("placeholder")) {
-    console.warn("[v0] Supabase environment variables not configured, using mock client")
+  if (!isValidUrl || !isValidKey) {
+    console.warn("[v0] Supabase environment variables not properly configured, using mock client")
+    console.warn("[v0] Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel Project Settings")
     return createMockSupabaseClient() as any
   }
 

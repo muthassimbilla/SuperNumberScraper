@@ -6,7 +6,17 @@ export const validateEnvironment = () => {
   }
 
   const missing = Object.entries(requiredEnvVars)
-    .filter(([key, value]) => !value || value.includes("placeholder"))
+    .filter(([key, value]) => {
+      if (!value || value.includes("placeholder")) return true
+
+      // Additional validation for URL format
+      if (key.includes("URL") && !value.includes("supabase")) return true
+
+      // Additional validation for key length (Supabase keys are typically long)
+      if (key.includes("KEY") && value.length < 20) return true
+
+      return false
+    })
     .map(([key]) => key)
 
   const isValid = missing.length === 0

@@ -4,6 +4,7 @@
 export interface User {
   id: string;
   email: string;
+  name?: string;
   subscription: 'free' | 'premium';
   subscription_expires_at?: string;
   is_active: boolean;
@@ -22,6 +23,19 @@ export interface LoginResponse {
   user?: User;
   token?: string;
   refreshToken?: string;
+  error?: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  name: string;
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message?: string;
+  user?: User;
   error?: string;
 }
 

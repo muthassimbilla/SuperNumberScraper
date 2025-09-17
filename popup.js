@@ -1,6 +1,6 @@
 class MinimalPopup {
   constructor() {
-    this.serverUrl = "https://your-domain.com/api"
+    this.serverUrl = "https://super-number-scraper.vercel.app/api"
     this.isAuthenticated = false
   }
 

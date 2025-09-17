@@ -16,7 +16,7 @@ class MinimalExtension {
 
     // For extension, we need to detect environment differently
     // You can set this manually or use chrome.runtime.getManifest()
-    const PRODUCTION_URL = "https://your-project-name.vercel.app" // Replace with your actual Vercel URL
+    const PRODUCTION_URL = "https://super-number-scraper.vercel.app" // Your actual Vercel URL
     const DEVELOPMENT_URL = "http://localhost:3000"
 
     // For now, we'll use production URL by default

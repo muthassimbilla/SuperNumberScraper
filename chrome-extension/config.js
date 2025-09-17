@@ -1,6 +1,6 @@
 const CONFIG = {
   // Replace this with your actual Vercel deployment URL
-  PRODUCTION_URL: "https://your-project-name.vercel.app",
+  PRODUCTION_URL: "https://super-number-scraper.vercel.app",
   DEVELOPMENT_URL: "http://localhost:3000",
 
   // Auto-detect environment (you can modify this logic)

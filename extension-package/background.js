@@ -1,32 +1,39 @@
-// Server Controlled Extension Background Script
-console.log('Server Controlled Extension - Background Script Loaded');
+// Smart Notes Extension - Background Script
+// Production-ready background service worker
 
-// Extension configuration
+// Extension configuration - SECURE VERSION
 const CONFIG = {
-  API_BASE_URL: 'http://localhost:3000/api', // Change to your domain in production
-  SUPABASE_URL: 'https://your-project.supabase.co', // Will be updated from server config
-  SUPABASE_KEY: 'your-anon-key', // Will be updated from server config
-  DEFAULT_SERVER_URL: 'http://localhost:3000' // Fallback server URL
+  API_BASE_URL: 'https://your-website.vercel.app/api/v1', // Generic API endpoints
+  DEFAULT_SERVER_URL: 'https://your-website.vercel.app' // Update with your production URL
+  // ✅ All operations go through secure server API
 };
 
 // Extension startup - Initialize and fetch server config
 chrome.runtime.onStartup.addListener(async () => {
-  console.log('Extension startup - fetching server config...');
+  console.log('Smart Notes Extension - Starting up...');
   await initializeExtension();
 });
 
 // Extension installation - Setup and fetch initial config
-chrome.runtime.onInstalled.addListener(async () => {
-  console.log('Extension installed - setting up...');
-  await initializeExtension();
+chrome.runtime.onInstalled.addListener(async (details) => {
+  console.log('Smart Notes Extension - Installed:', details.reason);
   
-  // Set default user state
-  chrome.storage.local.set({
-    isLoggedIn: false,
-    user: null,
-    lastConfigFetch: null,
-    serverConfig: null
-  });
+  if (details.reason === 'install') {
+    // First time installation
+    await chrome.storage.local.set({
+      isLoggedIn: false,
+      user: null,
+      lastConfigFetch: null,
+      serverConfig: null,
+      installDate: Date.now()
+    });
+    
+    // Show welcome message
+    chrome.action.setBadgeText({ text: 'NEW' });
+    chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
+  }
+  
+  await initializeExtension();
 });
 
 // Initialize extension by fetching server configuration
@@ -71,12 +78,15 @@ async function fetchServerConfig(userId, authToken) {
       lastConfigFetch: Date.now()
     });
     
-    console.log('Server config fetched successfully:', config);
+    console.log('Server config fetched successfully');
     
     // Update badge if needed
     if (config.badge && config.badge.enabled) {
       chrome.action.setBadgeText({ text: config.badge.text || '' });
       chrome.action.setBadgeBackgroundColor({ color: config.badge.color || '#2196F3' });
+    } else {
+      // Clear badge if not needed
+      chrome.action.setBadgeText({ text: '' });
     }
     
     return config;
@@ -155,6 +165,15 @@ async function handleMessage(message, sender, sendResponse) {
         sendResponse({ success: true });
         break;
         
+      case 'getUserInfo':
+        const userInfo = await chrome.storage.local.get(['user', 'isLoggedIn']);
+        sendResponse({ 
+          success: true, 
+          user: userInfo.user, 
+          isLoggedIn: userInfo.isLoggedIn 
+        });
+        break;
+        
       default:
         sendResponse({ success: false, error: 'Unknown action' });
     }
@@ -208,7 +227,8 @@ async function handleLogin(credentials) {
     });
     
     if (!response.ok) {
-      throw new Error('Login failed');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Login failed');
     }
     
     const result = await response.json();
@@ -248,14 +268,14 @@ async function handleLogout() {
   }
 }
 
-// Periodic config refresh (every 5 minutes)
+// Periodic config refresh (every 10 minutes)
 setInterval(async () => {
   try {
     const result = await chrome.storage.local.get(['user', 'authToken', 'lastConfigFetch']);
     
     if (result.user && result.authToken) {
-      // Check if it's been more than 5 minutes since last fetch
-      if (!result.lastConfigFetch || Date.now() - result.lastConfigFetch > 5 * 60 * 1000) {
+      // Check if it's been more than 10 minutes since last fetch
+      if (!result.lastConfigFetch || Date.now() - result.lastConfigFetch > 10 * 60 * 1000) {
         await fetchServerConfig(result.user.id, result.authToken);
         console.log('Config refreshed automatically');
       }
@@ -263,4 +283,16 @@ setInterval(async () => {
   } catch (error) {
     console.error('Error in periodic config refresh:', error);
   }
-}, 5 * 60 * 1000); // 5 minutes
+}, 10 * 60 * 1000); // 10 minutes
+
+// Handle extension icon click
+chrome.action.onClicked.addListener((tab) => {
+  // This will open the popup automatically
+  console.log('Extension icon clicked');
+});
+
+// Error handling for unhandled promise rejections
+self.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection in background script:', event.reason);
+  event.preventDefault();
+});

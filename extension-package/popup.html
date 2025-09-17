@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Notes - Server Controlled Extension</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>Loading Smart Notes...</p>
+    </div>
+  </div>
+
+  <!-- Login Screen -->
+  <div id="login-screen" style="display: none;">
+    <div class="login-container">
+      <div class="login-header">
+        <h2>Welcome to Smart Notes</h2>
+        <p class="login-subtitle">Sign in to access your notes and features</p>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="Enter your email" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Enter your password" required />
+        </div>
+        <button type="submit" id="login-btn">
+          <span class="btn-text">Sign In</span>
+          <span class="btn-loading" style="display: none;">Signing in...</span>
+        </button>
+      </form>
+      <div class="login-footer">
+        <p>Don't have an account? <a href="#" id="signup-link">Sign up here</a></p>
+      </div>
+      <div id="login-error" class="error-message" style="display: none;"></div>
+    </div>
+  </div>
+
+  <!-- Main App Container (Dynamic UI) -->
+  <div id="app-container" style="display: none;">
+    <!-- Header Section -->
+    <div id="app-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h3 id="app-title">Smart Notes</h3>
+          <span id="user-badge" class="user-badge"></span>
+        </div>
+        <div class="header-actions">
+          <button id="refresh-btn" title="Refresh" class="action-btn">
+            <span>🔄</span>
+          </button>
+          <button id="settings-btn" title="Settings" class="action-btn">
+            <span>⚙️</span>
+          </button>
+          <button id="logout-btn" title="Sign Out" class="action-btn">
+            <span>🚪</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Content Area -->
+    <div id="app-content">
+      <!-- Content will be dynamically generated based on server config -->
+      <div id="dynamic-content">
+        <div class="welcome-message">
+          <h4>Welcome back!</h4>
+          <p>Your personalized features are loading...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="app-footer">
+      <div class="footer-content">
+        <div class="footer-left">
+          <span id="user-info"></span>
+        </div>
+        <div class="footer-right">
+          <span id="sync-status" class="sync-status">
+            <span class="sync-icon">🟢</span>
+            <span class="sync-text">Synced</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Screen -->
+  <div id="error-screen" style="display: none;">
+    <div class="error-container">
+      <div class="error-icon">⚠️</div>
+      <h3>Connection Error</h3>
+      <p id="error-message">Unable to connect to server. Please check your internet connection.</p>
+      <div class="error-actions">
+        <button id="retry-btn" class="btn-primary">Try Again</button>
+        <button id="offline-btn" class="btn-secondary">Work Offline</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Welcome Screen for New Users -->
+  <div id="welcome-screen" style="display: none;">
+    <div class="welcome-container">
+      <div class="welcome-header">
+        <h2>🎉 Welcome to Smart Notes!</h2>
+        <p>Your intelligent note-taking companion</p>
+      </div>
+      <div class="welcome-features">
+        <div class="feature-item">
+          <span class="feature-icon">📝</span>
+          <span>Smart Note Taking</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🔄</span>
+          <span>Real-time Sync</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🎨</span>
+          <span>Custom Themes</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🔒</span>
+          <span>Secure & Private</span>
+        </div>
+      </div>
+      <div class="welcome-actions">
+        <button id="get-started-btn" class="btn-primary">Get Started</button>
+        <button id="learn-more-btn" class="btn-secondary">Learn More</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="api-client.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

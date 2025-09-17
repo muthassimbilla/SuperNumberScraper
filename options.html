@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Settings - Server-Driven Extension</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .settings-container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+
+        .settings-section {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .settings-section h2 {
+            margin: 0 0 16px 0;
+            color: #1e293b;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-title {
+            font-weight: 500;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .setting-description {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        .setting-control {
+            margin-left: 20px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .number-input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 80px;
+            text-align: center;
+        }
+
+        .select-input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 120px;
+        }
+
+        .save-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .save-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .save-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .status-message.success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+        }
+
+        .status-message.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        .auth-section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .auth-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-indicator.connected {
+            background: #16a34a;
+        }
+
+        .status-indicator.disconnected {
+            background: #dc2626;
+        }
+
+        .auth-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .auth-button:hover {
+            background: #5a67d8;
+        }
+
+        .reset-section {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 24px;
+        }
+
+        .reset-section h3 {
+            color: #dc2626;
+            margin: 0 0 12px 0;
+        }
+
+        .reset-button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .reset-button:hover {
+            background: #b91c1c;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Extension Settings</h1>
+        <p>Configure your server-driven extension preferences</p>
+    </div>
+
+    <div id="status-container"></div>
+
+    <div class="auth-section">
+        <div class="auth-status">
+            <div id="auth-indicator" class="status-indicator disconnected"></div>
+            <span id="auth-status-text">Checking authentication...</span>
+        </div>
+        <button id="auth-button" class="auth-button" onclick="handleAuth()">Sign In</button>
+    </div>
+
+    <div class="settings-container">
+        <div class="settings-section">
+            <h2>Phone Number Extraction</h2>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">Auto Tab Switch</div>
+                    <div class="setting-description">Automatically switch to the next tab after copying a number</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoTabSwitch">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">Number Formatting</div>
+                    <div class="setting-description">Format phone numbers when copying (remove non-digits)</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="numberFormatting">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">US Numbers Only</div>
+                    <div class="setting-description">Only show US phone numbers in results</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="usOnly">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">Exclude Toll-Free</div>
+                    <div class="setting-description">Hide toll-free numbers (800, 888, etc.) from results</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="excludeTollFree">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">Tab Switch Delay</div>
+                    <div class="setting-description">Delay in milliseconds before switching tabs</div>
+                </div>
+                <div class="setting-control">
+                    <input type="number" id="nextTabDelayMs" class="number-input" min="0" max="5000" step="100">
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>Data Synchronization</h2>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">Auto Sync Interval</div>
+                    <div class="setting-description">How often to sync offline data to server (minutes)</div>
+                </div>
+                <div class="setting-control">
+                    <select id="syncInterval" class="select-input">
+                        <option value="15">15 minutes</option>
+                        <option value="30">30 minutes</option>
+                        <option value="60">1 hour</option>
+                        <option value="180">3 hours</option>
+                        <option value="360">6 hours</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">Notifications</div>
+                    <div class="setting-description">Show notifications for sync status and important events</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notifications">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>Advanced</h2>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">Debug Mode</div>
+                    <div class="setting-description">Enable detailed logging for troubleshooting</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="debugMode">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">Cache Duration</div>
+                    <div class="setting-description">How long to cache UI configuration (hours)</div>
+                </div>
+                <div class="setting-control">
+                    <select id="cacheDuration" class="select-input">
+                        <option value="1">1 hour</option>
+                        <option value="6">6 hours</option>
+                        <option value="24">24 hours</option>
+                        <option value="168">1 week</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button id="save-button" class="save-button" onclick="saveSettings()">Save Settings</button>
+    </div>
+
+    <div class="reset-section">
+        <h3>Reset Extension</h3>
+        <p>This will clear all local data and reset settings to defaults. Your server data will not be affected.</p>
+        <button class="reset-button" onclick="resetExtension()">Reset Extension</button>
+    </div>
+
+    <script src="js/supabase-auth.js"></script>
+    <script src="options.js"></script>
+</body>
+</html>

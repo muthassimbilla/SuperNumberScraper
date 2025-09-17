@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+// Get environment variables with fallbacks for build time
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key'
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-key'
+
+// Check if we're in a build environment without proper env vars
+const isBuildTime = !process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')
 
 // Client for browser-side operations
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
@@ -14,6 +18,14 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     persistSession: false
   }
 })
+
+// Helper to check if Supabase is properly configured
+export function isSupabaseConfigured(): boolean {
+  return !isBuildTime && 
+         !!process.env.NEXT_PUBLIC_SUPABASE_URL && 
+         !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && 
+         !!process.env.SUPABASE_SERVICE_ROLE_KEY
+}
 
 // Database Tables
 export const TABLES = {
@@ -117,6 +129,13 @@ export const supabaseAuth = SupabaseAuth;
 
 // Helper functions for common database operations
 export class SupabaseHelper {
+  // Check if Supabase is configured before making calls
+  static checkConfiguration() {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured. Please set environment variables.')
+    }
+  }
+
   // User operations
   static async createUser(userData: {
     email: string
@@ -124,6 +143,7 @@ export class SupabaseHelper {
     subscription?: 'free' | 'premium'
     metadata?: Record<string, any>
   }) {
+    this.checkConfiguration()
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email: userData.email,
       password: userData.password,
@@ -153,6 +173,7 @@ export class SupabaseHelper {
   }
 
   static async getUserById(userId: string) {
+    this.checkConfiguration()
     const { data, error } = await supabaseAdmin
       .from(TABLES.USERS)
       .select('*')
@@ -178,6 +199,7 @@ export class SupabaseHelper {
 
   // Extension config operations
   static async getExtensionConfig(userId?: string) {
+    this.checkConfiguration()
     let query = supabaseAdmin
       .from(TABLES.EXTENSION_CONFIGS)
       .select('*')
@@ -397,6 +419,7 @@ export class SupabaseHelper {
 
   // Dashboard stats
   static async getDashboardStats() {
+    this.checkConfiguration()
     // Get user counts
     const { count: totalUsers } = await supabaseAdmin
       .from(TABLES.USERS)

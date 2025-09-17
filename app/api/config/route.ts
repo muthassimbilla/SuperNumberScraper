@@ -31,23 +31,28 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+      // Check if Supabase is configured
+      const { isSupabaseConfigured } = await import('@/lib/supabase')
+      
       let config: ExtensionConfig | null = null
 
-      // Try to get user-specific config first
-      if (userId) {
-        try {
-          config = await SupabaseHelper.getExtensionConfig(userId)
-        } catch (error) {
-          console.log('No user-specific config found, falling back to global')
+      if (isSupabaseConfigured()) {
+        // Try to get user-specific config first
+        if (userId) {
+          try {
+            config = await SupabaseHelper.getExtensionConfig(userId)
+          } catch (error) {
+            console.log('No user-specific config found, falling back to global')
+          }
         }
-      }
 
-      // Fall back to global config if no user-specific config
-      if (!config) {
-        try {
-          config = await SupabaseHelper.getExtensionConfig() // No userId = global config
-        } catch (error) {
-          console.error('No global config found:', error)
+        // Fall back to global config if no user-specific config
+        if (!config) {
+          try {
+            config = await SupabaseHelper.getExtensionConfig() // No userId = global config
+          } catch (error) {
+            console.error('No global config found:', error)
+          }
         }
       }
 

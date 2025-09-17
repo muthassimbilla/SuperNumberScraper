@@ -25,6 +25,42 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+      // Check if Supabase is configured
+      const { isSupabaseConfigured } = await import('@/lib/supabase')
+      
+      if (!isSupabaseConfigured()) {
+        // Return mock data for build time
+        const mockStats = {
+          totalUsers: 0,
+          activeUsers: 0,
+          premiumUsers: 0,
+          totalFeatures: 0,
+          activeExtensions: 0,
+          serverStatus: 'offline' as const,
+          usageStats: {
+            dailyActiveUsers: 0,
+            weeklyActiveUsers: 0,
+            monthlyActiveUsers: 0,
+            featureUsage: {},
+            popularFeatures: []
+          }
+        }
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            stats: mockStats,
+            recentLogs: [],
+            subscriptionStats: {},
+            growth: {
+              newUsersLast30Days: 0,
+              dailyActiveUsers: 0,
+              weeklyActiveUsers: 0
+            }
+          }
+        })
+      }
+
       // Get dashboard statistics
       const stats = await SupabaseHelper.getDashboardStats()
       

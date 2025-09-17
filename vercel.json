@@ -1,11 +1,15 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm install",
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "chrome-extension://*"
+          "value": "*"
         },
         {
           "key": "Access-Control-Allow-Methods",
@@ -16,6 +20,12 @@
           "value": "Content-Type, Authorization"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     }
   ]
 }

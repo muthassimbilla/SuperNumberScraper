@@ -22,15 +22,18 @@ const createMockSupabaseClient = () => {
     delete: () => mockQuery,
     order: () => mockQuery,
     eq: () => mockQuery,
-    gte: () => mockQuery, // Added gte method
-    lte: () => mockQuery, // Added lte method
-    gt: () => mockQuery, // Added gt method
-    lt: () => mockQuery, // Added lt method
-    neq: () => mockQuery, // Added neq method
-    in: () => mockQuery, // Added in method
+    gte: () => mockQuery,
+    lte: () => mockQuery,
+    gt: () => mockQuery,
+    lt: () => mockQuery,
+    neq: () => mockQuery,
+    in: () => mockQuery,
     limit: () => mockQuery,
     single: () => Promise.resolve({ data: null, error: null }),
-    then: (resolve: any) => resolve({ data: [], error: null, count: 0 }),
+    then: (resolve: any) => {
+      const result = { data: [], error: null, count: 0 }
+      return resolve ? resolve(result) : Promise.resolve(result)
+    },
   }
 
   return {
@@ -45,14 +48,18 @@ const createMockSupabaseClient = () => {
 
 // Server-side Supabase client for API routes
 export const createServerSupabaseClient = () => {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
     console.warn("[v0] Supabase environment variables not configured, using mock client")
     return createMockSupabaseClient() as any
   }
 
   const cookieStore = cookies()
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       get(name: string) {
         return cookieStore.get(name)?.value

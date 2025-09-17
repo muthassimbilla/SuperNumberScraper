@@ -1,16 +1,38 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase"
+import { getEnvironmentStatus } from "@/lib/env-validation"
 
 // GET - Fetch all users from Supabase
 export async function GET(request: NextRequest) {
   try {
+    const envStatus = getEnvironmentStatus()
+
+    if (envStatus.status !== "configured") {
+      console.warn("[v0] Environment issue:", envStatus.message)
+
+      return NextResponse.json({
+        users: [],
+        warning: envStatus.message,
+        environmentStatus: envStatus.status,
+        missingVars: envStatus.missing || [],
+      })
+    }
+
     const supabase = createServerSupabaseClient()
     const { data: users, error } = await supabase.from("users").select("*").order("created_at", { ascending: false })
 
     if (error) {
       console.error("[v0] Error fetching users:", error)
-      // Return empty array if no users found instead of error
-      return NextResponse.json({ users: [] })
+
+      if (error.message.includes("Invalid API key") || error.message.includes("unauthorized")) {
+        return NextResponse.json({
+          users: [],
+          error: "Invalid Supabase credentials. Please check your environment variables in Vercel Project Settings.",
+          environmentStatus: "invalid_credentials",
+        })
+      }
+
+      return NextResponse.json({ users: [], error: error.message })
     }
 
     // Format users data for frontend
@@ -24,10 +46,15 @@ export async function GET(request: NextRequest) {
         created_at: user.created_at,
       })) || []
 
+    console.log("[v0] Users fetched successfully:", formattedUsers.length, "users")
     return NextResponse.json({ users: formattedUsers })
   } catch (error) {
     console.error("[v0] Error in users API:", error)
-    return NextResponse.json({ users: [] })
+    return NextResponse.json({
+      users: [],
+      error: "API error occurred",
+      details: error instanceof Error ? error.message : "Unknown error",
+    })
   }
 }
 
@@ -39,6 +66,16 @@ export async function POST(request: NextRequest) {
     console.log("[v0] User action:", userId, action)
 
     const supabase = createServerSupabaseClient()
+
+    const hasSupabaseConfig = !!(
+      (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) &&
+      (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    )
+
+    if (!hasSupabaseConfig) {
+      console.log("[v0] No Supabase config, simulating user action success")
+      return NextResponse.json({ success: true, message: `User ${action} simulated (no database)` })
+    }
 
     let updateData: any = {}
 

@@ -44,26 +44,45 @@ export default function ExtensionControlPanel() {
 
       // Fetch users
       const usersResponse = await fetch("/api/extension/users")
-      const usersData = await usersResponse.json()
-      setUsers(usersData.users || [])
+      if (!usersResponse.ok) {
+        console.error("[v0] Users API failed:", usersResponse.status, usersResponse.statusText)
+        setUsers([])
+      } else {
+        const usersData = await usersResponse.json()
+        setUsers(usersData.users || [])
+      }
 
       // Fetch stats
       const statsResponse = await fetch("/api/extension/stats")
-      const statsData = await statsResponse.json()
-      setStats(
-        statsData.stats || {
+      if (!statsResponse.ok) {
+        console.error("[v0] Stats API failed:", statsResponse.status, statsResponse.statusText)
+        setStats({
           totalUsers: 0,
           activeUsers: 0,
           dataScraped: 0,
           apiCalls: 0,
-        },
-      )
+        })
+      } else {
+        const statsData = await statsResponse.json()
+        setStats(
+          statsData.stats || {
+            totalUsers: 0,
+            activeUsers: 0,
+            dataScraped: 0,
+            apiCalls: 0,
+          },
+        )
+      }
 
       // Fetch current config
       const configResponse = await fetch("/api/extension/config")
-      const configData = await configResponse.json()
-      if (configData.config) {
-        setExtensionConfig(configData.config)
+      if (!configResponse.ok) {
+        console.error("[v0] Config API failed:", configResponse.status, configResponse.statusText)
+      } else {
+        const configData = await configResponse.json()
+        if (configData.config) {
+          setExtensionConfig(configData.config)
+        }
       }
     } catch (error) {
       console.error("[v0] Error fetching dashboard data:", error)

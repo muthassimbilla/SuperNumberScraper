@@ -1,9 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
+import { createServerSupabaseClient } from "@/lib/supabase"
 
 // GET - Fetch extension configuration from Supabase
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createServerSupabaseClient()
     const { data: config, error } = await supabase.from("ui_config").select("*").eq("active", true).single()
 
     if (error || !config) {
@@ -78,6 +79,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { config } = await request.json()
+    const supabase = createServerSupabaseClient()
 
     const { data, error } = await supabase.from("ui_config").upsert(
       {

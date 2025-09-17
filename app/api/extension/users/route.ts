@@ -1,9 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
+import { createServerSupabaseClient } from "@/lib/supabase"
 
 // GET - Fetch all users from Supabase
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createServerSupabaseClient()
     const { data: users, error } = await supabase.from("users").select("*").order("created_at", { ascending: false })
 
     if (error) {
@@ -36,6 +37,8 @@ export async function POST(request: NextRequest) {
     const { userId, action } = await request.json()
 
     console.log("[v0] User action:", userId, action)
+
+    const supabase = createServerSupabaseClient()
 
     let updateData: any = {}
 

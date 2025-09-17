@@ -1,33 +1,32 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { supabase } from "@/lib/supabase"
 
-// GET - Fetch all users
+// GET - Fetch all users from Supabase
 export async function GET(request: NextRequest) {
   try {
-    // In production, fetch from your database
-    const users = [
-      {
-        id: 1,
-        email: "user1@example.com",
-        subscription: "premium",
-        status: "active",
-        lastActive: new Date().toISOString(),
-        dataCount: 1250,
-        joinedAt: "2024-01-15",
-      },
-      {
-        id: 2,
-        email: "user2@example.com",
-        subscription: "free",
-        status: "active",
-        lastActive: new Date(Date.now() - 3600000).toISOString(),
-        dataCount: 89,
-        joinedAt: "2024-02-20",
-      },
-    ]
+    const { data: users, error } = await supabase.from("users").select("*").order("created_at", { ascending: false })
 
-    return NextResponse.json(users)
+    if (error) {
+      console.error("[v0] Error fetching users:", error)
+      // Return empty array if no users found instead of error
+      return NextResponse.json({ users: [] })
+    }
+
+    // Format users data for frontend
+    const formattedUsers =
+      users?.map((user) => ({
+        id: user.id,
+        email: user.email,
+        subscription: user.subscription || "free",
+        status: user.status || "active",
+        last_active: user.last_active || "Never",
+        created_at: user.created_at,
+      })) || []
+
+    return NextResponse.json({ users: formattedUsers })
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 })
+    console.error("[v0] Error in users API:", error)
+    return NextResponse.json({ users: [] })
   }
 }
 
@@ -38,11 +37,35 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] User action:", userId, action)
 
-    // In production, update user in database
-    // Handle different actions: suspend, activate, upgrade, downgrade
+    let updateData: any = {}
+
+    switch (action) {
+      case "suspend":
+        updateData = { status: "suspended" }
+        break
+      case "activate":
+        updateData = { status: "active" }
+        break
+      case "upgrade":
+        updateData = { subscription: "premium" }
+        break
+      case "downgrade":
+        updateData = { subscription: "free" }
+        break
+      default:
+        return NextResponse.json({ error: "Invalid action" }, { status: 400 })
+    }
+
+    const { error } = await supabase.from("users").update(updateData).eq("id", userId)
+
+    if (error) {
+      console.error("[v0] Error updating user:", error)
+      return NextResponse.json({ error: "Failed to update user" }, { status: 500 })
+    }
 
     return NextResponse.json({ success: true, message: `User ${action} successful` })
   } catch (error) {
+    console.error("[v0] Error in user action:", error)
     return NextResponse.json({ error: "Failed to perform user action" }, { status: 500 })
   }
 }

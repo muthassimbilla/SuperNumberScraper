@@ -6,15 +6,19 @@ export async function GET(request: NextRequest) {
   try {
     const { data: config, error } = await supabase.from("ui_config").select("*").eq("active", true).single()
 
-    if (error) {
-      console.error("[v0] Supabase config fetch error:", error)
-      // Fallback to default config if database is empty
+    if (error || !config) {
+      console.log("[v0] No config found in database, returning default config")
       const defaultConfig = {
         enabled: true,
         features: {
           phoneScrapingEnabled: true,
           autoSaveEnabled: true,
           realTimeSync: true,
+        },
+        uiConfig: {
+          theme: "light",
+          showStats: true,
+          compactMode: false,
         },
         ui: {
           features: [
@@ -45,34 +49,54 @@ export async function GET(request: NextRequest) {
           ],
         },
       }
-      return NextResponse.json(defaultConfig)
+      return NextResponse.json({ config: defaultConfig })
     }
 
-    return NextResponse.json(config.config_data)
+    return NextResponse.json({ config: config.config_data })
   } catch (error) {
     console.error("[v0] Config fetch error:", error)
-    return NextResponse.json({ error: "Failed to fetch config" }, { status: 500 })
+    // Return default config instead of error
+    return NextResponse.json({
+      config: {
+        enabled: true,
+        features: {
+          phoneScrapingEnabled: true,
+          autoSaveEnabled: true,
+          realTimeSync: true,
+        },
+        uiConfig: {
+          theme: "light",
+          showStats: true,
+          compactMode: false,
+        },
+      },
+    })
   }
 }
 
 // POST - Update extension configuration in Supabase
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const { config } = await request.json()
 
-    const { data, error } = await supabase.from("ui_config").upsert({
-      id: "default",
-      config_data: body,
-      active: true,
-      updated_at: new Date().toISOString(),
-    })
+    const { data, error } = await supabase.from("ui_config").upsert(
+      {
+        id: "default",
+        config_data: config,
+        active: true,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: "id",
+      },
+    )
 
     if (error) {
       console.error("[v0] Supabase config update error:", error)
       return NextResponse.json({ error: "Failed to update config" }, { status: 500 })
     }
 
-    console.log("[v0] Extension config updated in Supabase:", body)
+    console.log("[v0] Extension config updated in Supabase")
     return NextResponse.json({ success: true, message: "Configuration updated" })
   } catch (error) {
     console.error("[v0] Config update error:", error)

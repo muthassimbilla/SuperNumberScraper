@@ -1,6 +1,7 @@
-const SUPABASE_URL = "https://kteiqnewqmmtyuijsrgf.supabase.co"
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://nvsaxbxbgwmqlxpiixid.supabase.co"
 const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0ZWlxbmV3cW1tdHl1aWpzcmdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzU0NTQsImV4cCI6MjA2NzM1MTQ1NH0.-QgfCruUe6E7i7wvOJnCdV432yc2Xiwin7Dg11Dff98"
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52c2F4YnhiZ3dtcWx4cGlpeGlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwMjU2OTcsImV4cCI6MjA3MzYwMTY5N30.lyOk4nvT1bp0ZCfCTxyrup9lc-BuxEIfD5ge78row4I"
 
 // Function to get location from area code
 function getLocationFromAreaCode(phoneNumber) {
